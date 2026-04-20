@@ -8,7 +8,31 @@ const __dirname = path.dirname(__filename);
 
 let mainWindow;
 
+function getBoundsPath() {
+  return path.join(app.getPath('userData'), 'widget-bounds.json');
+}
+
+function loadBounds() {
+  const filePath = getBoundsPath();
+  if (!existsSync(filePath)) return null;
+  try {
+    return JSON.parse(readFileSync(filePath, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function saveBounds() {
+  if (!mainWindow) return;
+  try {
+    const { x, y } = mainWindow.getBounds();
+    writeFileSync(getBoundsPath(), JSON.stringify({ x, y }), 'utf8');
+  } catch { /* ignore */ }
+}
+
 function createWindow() {
+  const savedBounds = loadBounds();
+
   mainWindow = new BrowserWindow({
     width: 260,
     height: 260,
@@ -16,6 +40,7 @@ function createWindow() {
     minHeight: 260,
     maxWidth: 260,
     maxHeight: 260,
+    ...(savedBounds ? { x: savedBounds.x, y: savedBounds.y } : {}),
     resizable: false,
     maximizable: false,
     fullscreenable: false,
@@ -37,6 +62,9 @@ function createWindow() {
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
   mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+
+  mainWindow.on('moved', saveBounds);
+  mainWindow.on('close', saveBounds);
 }
 
 ipcMain.handle('widget:minimize', () => {
