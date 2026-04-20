@@ -22,7 +22,7 @@ function formatTime(seconds) {
 }
 
 export default function CountdownTimer({ onStats }) {
-  const [minutesInput, setMinutesInput] = useState('1');
+  const [minutesInput, setMinutesInput] = useState('5');
   const [secondsInput, setSecondsInput] = useState('00');
   const [totalSeconds, setTotalSeconds] = useState(null);
   const [remaining, setRemaining] = useState(null);
