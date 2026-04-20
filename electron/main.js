@@ -95,6 +95,26 @@ ipcMain.handle('stats:save', (_event, stats) => {
   } catch { /* ignore write errors */ }
 });
 
+function getTimerConfigPath() {
+  return path.join(app.getPath('userData'), 'widget-timer.json');
+}
+
+ipcMain.handle('timer:load', () => {
+  const filePath = getTimerConfigPath();
+  if (!existsSync(filePath)) return null;
+  try {
+    return JSON.parse(readFileSync(filePath, 'utf8'));
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle('timer:save', (_event, config) => {
+  try {
+    writeFileSync(getTimerConfigPath(), JSON.stringify(config), 'utf8');
+  } catch { /* ignore */ }
+});
+
 app.whenReady().then(() => {
   createWindow();
 

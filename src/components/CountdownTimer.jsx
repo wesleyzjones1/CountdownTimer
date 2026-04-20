@@ -24,6 +24,7 @@ function formatTime(seconds) {
 export default function CountdownTimer({ onStats }) {
   const [minutesInput, setMinutesInput] = useState('5');
   const [secondsInput, setSecondsInput] = useState('00');
+  const timerLoadedRef = useRef(false);
   const [totalSeconds, setTotalSeconds] = useState(null);
   const [remaining, setRemaining] = useState(null);
   const [phase, setPhase] = useState('setup'); // setup | running | finished
@@ -113,6 +114,24 @@ export default function CountdownTimer({ onStats }) {
     }, 1000);
     return clearTimer;
   }, [phase, clearTimer, totalSeconds]);
+
+  // Load saved timer config on mount
+  useEffect(() => {
+    (async () => {
+      const saved = await window.widgetWindow?.loadTimer?.();
+      if (saved) {
+        setMinutesInput(saved.minutes ?? '5');
+        setSecondsInput(saved.seconds ?? '00');
+      }
+      timerLoadedRef.current = true;
+    })();
+  }, []);
+
+  // Save timer config whenever inputs change (setup phase only)
+  useEffect(() => {
+    if (!timerLoadedRef.current || phase !== 'setup') return;
+    window.widgetWindow?.saveTimer?.({ minutes: minutesInput, seconds: secondsInput });
+  }, [minutesInput, secondsInput, phase]);
 
   // Report stats to parent as deltas
   useEffect(() => {
