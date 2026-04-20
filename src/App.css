@@ -98,6 +98,27 @@ body {
   min-width: 2.4ch;
   font-variant-numeric: tabular-nums;
   text-align: left;
+  cursor: pointer;
+}
+
+.widget-stats-num:hover {
+  color: var(--text-secondary);
+}
+
+.widget-stats-edit {
+  width: 2.4ch;
+  min-width: 2.4ch;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--text-muted);
+  color: var(--text-secondary);
+  font-size: 0.6rem;
+  font-family: 'Outfit', sans-serif;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  outline: none;
+  padding: 0;
+  line-height: 1;
 }
 
 .widget-actions {

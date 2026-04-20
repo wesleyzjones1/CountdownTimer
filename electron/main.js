@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,6 +45,26 @@ ipcMain.handle('widget:minimize', () => {
 
 ipcMain.handle('widget:close', () => {
   mainWindow?.close();
+});
+
+function getStatsPath() {
+  return path.join(app.getPath('userData'), 'widget-stats.json');
+}
+
+ipcMain.handle('stats:load', () => {
+  const filePath = getStatsPath();
+  if (!existsSync(filePath)) return { refreshes: 0, timeouts: 0 };
+  try {
+    return JSON.parse(readFileSync(filePath, 'utf8'));
+  } catch {
+    return { refreshes: 0, timeouts: 0 };
+  }
+});
+
+ipcMain.handle('stats:save', (_event, stats) => {
+  try {
+    writeFileSync(getStatsPath(), JSON.stringify(stats), 'utf8');
+  } catch { /* ignore write errors */ }
 });
 
 app.whenReady().then(() => {

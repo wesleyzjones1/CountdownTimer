@@ -31,6 +31,7 @@ export default function CountdownTimer({ onStats }) {
   const [timeoutCount, setTimeoutCount] = useState(0);
   const intervalRef = useRef(null);
   const isPointerOverClockRef = useRef(false);
+  const prevStatsRef = useRef({ refreshes: 0, timeouts: 0 });
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {
@@ -113,9 +114,15 @@ export default function CountdownTimer({ onStats }) {
     return clearTimer;
   }, [phase, clearTimer, totalSeconds]);
 
-  // Report stats to parent
+  // Report stats to parent as deltas
   useEffect(() => {
-    onStats?.({ refreshes: refreshCount, timeouts: timeoutCount });
+    const prev = prevStatsRef.current;
+    const refreshDelta = refreshCount - prev.refreshes;
+    const timeoutDelta = timeoutCount - prev.timeouts;
+    if (refreshDelta !== 0 || timeoutDelta !== 0) {
+      onStats?.({ refreshDelta, timeoutDelta });
+      prevStatsRef.current = { refreshes: refreshCount, timeouts: timeoutCount };
+    }
   }, [refreshCount, timeoutCount, onStats]);
 
   // Derived values
