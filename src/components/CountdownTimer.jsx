@@ -21,12 +21,14 @@ function formatTime(seconds) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export default function CountdownTimer() {
+export default function CountdownTimer({ onStats }) {
   const [minutesInput, setMinutesInput] = useState('1');
   const [secondsInput, setSecondsInput] = useState('00');
   const [totalSeconds, setTotalSeconds] = useState(null);
   const [remaining, setRemaining] = useState(null);
   const [phase, setPhase] = useState('setup'); // setup | running | finished
+  const [refreshCount, setRefreshCount] = useState(0);
+  const [timeoutCount, setTimeoutCount] = useState(0);
   const intervalRef = useRef(null);
   const isPointerOverClockRef = useRef(false);
 
@@ -68,7 +70,10 @@ export default function CountdownTimer() {
   }, [clearTimer]);
 
   const handleHoverRestart = useCallback(() => {
-    if (phase === 'running' || phase === 'finished') {
+    if (phase === 'running') {
+      setRefreshCount(c => c + 1);
+      startCountdown(totalSeconds ?? undefined);
+    } else if (phase === 'finished') {
       startCountdown(totalSeconds ?? undefined);
     }
   }, [phase, startCountdown, totalSeconds]);
@@ -93,6 +98,7 @@ export default function CountdownTimer() {
     intervalRef.current = setInterval(() => {
       setRemaining(prev => {
         if (prev <= 1) {
+          setTimeoutCount(c => c + 1);
           if (isPointerOverClockRef.current && totalSeconds) {
             return totalSeconds;
           }
@@ -106,6 +112,11 @@ export default function CountdownTimer() {
     }, 1000);
     return clearTimer;
   }, [phase, clearTimer, totalSeconds]);
+
+  // Report stats to parent
+  useEffect(() => {
+    onStats?.({ refreshes: refreshCount, timeouts: timeoutCount });
+  }, [refreshCount, timeoutCount, onStats]);
 
   // Derived values
   const progress = totalSeconds ? 1 - remaining / totalSeconds : 0;

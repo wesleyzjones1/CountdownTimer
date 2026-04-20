@@ -74,6 +74,32 @@ body {
   height: 1px;
 }
 
+.widget-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  -webkit-app-region: no-drag;
+}
+
+.widget-stats-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  font-family: 'Outfit', sans-serif;
+  line-height: 1;
+}
+
+.widget-stats-num {
+  display: inline-block;
+  min-width: 2.4ch;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+}
+
 .widget-actions {
   display: flex;
   align-items: center;
