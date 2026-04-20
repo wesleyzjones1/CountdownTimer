@@ -1,0 +1,100 @@
+.timer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+/* Clock wrapper */
+.clock-wrapper {
+  position: relative;
+  width: min(250px, 65vw);
+  height: min(250px, 65vw);
+  cursor: default;
+  transition: transform 0.3s ease;
+}
+
+.clock-wrapper:hover {
+  transform: scale(1.02);
+}
+
+.clock-wrapper.finished {
+  cursor: pointer;
+}
+
+.clock-wrapper.finished:hover {
+  transform: scale(1.05);
+}
+
+/* SVG */
+.clock-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progress-ring {
+  transition: stroke-dashoffset 1s linear,
+              stroke 0.6s ease;
+}
+
+.progress-glow {
+  transition: stroke-dashoffset 1s linear,
+              stroke 0.6s ease;
+}
+
+/* Center display */
+.clock-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.time-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(2.5rem, 7vw, 3.8rem);
+  font-weight: 300;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  transition: color 0.6s ease;
+  pointer-events: auto;
+}
+
+.time-editor {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.2rem;
+  pointer-events: auto;
+}
+
+.time-edit-input {
+  width: 1.9ch;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(2.5rem, 7vw, 3.8rem);
+  font-weight: 300;
+  text-align: center;
+  line-height: 1;
+  outline: none;
+}
+
+.time-edit-input:focus {
+  text-shadow: 0 0 14px rgba(40, 200, 64, 0.35);
+}
+
+.time-separator {
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(2.5rem, 7vw, 3.8rem);
+  font-weight: 300;
+  line-height: 1;
+}
+
