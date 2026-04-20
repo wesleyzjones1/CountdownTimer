@@ -27,8 +27,8 @@ export default function CountdownTimer() {
   const [totalSeconds, setTotalSeconds] = useState(null);
   const [remaining, setRemaining] = useState(null);
   const [phase, setPhase] = useState('setup'); // setup | running | finished
-  const [isPointerOverClock, setIsPointerOverClock] = useState(false);
   const intervalRef = useRef(null);
+  const isPointerOverClockRef = useRef(false);
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {
@@ -87,18 +87,16 @@ export default function CountdownTimer() {
     startCountdown(totalSeconds ?? undefined);
   }, [phase, startCountdown, stopAndReset, totalSeconds]);
 
-  useEffect(() => {
-    if (phase === 'finished' && isPointerOverClock) {
-      startCountdown(totalSeconds ?? undefined);
-    }
-  }, [phase, isPointerOverClock, startCountdown, totalSeconds]);
-
   // Countdown tick
   useEffect(() => {
     if (phase !== 'running') return;
     intervalRef.current = setInterval(() => {
       setRemaining(prev => {
         if (prev <= 1) {
+          if (isPointerOverClockRef.current && totalSeconds) {
+            return totalSeconds;
+          }
+
           clearTimer();
           setPhase('finished');
           return 0;
@@ -107,7 +105,7 @@ export default function CountdownTimer() {
       });
     }, 1000);
     return clearTimer;
-  }, [phase, clearTimer]);
+  }, [phase, clearTimer, totalSeconds]);
 
   // Derived values
   const progress = totalSeconds ? 1 - remaining / totalSeconds : 0;
@@ -148,9 +146,13 @@ export default function CountdownTimer() {
     <div className="timer-container">
       <div
         className={`clock-wrapper ${phase === 'finished' ? 'finished' : ''}`}
-        onMouseEnter={handleHoverRestart}
-        onMouseLeave={() => setIsPointerOverClock(false)}
-        onMouseOver={() => setIsPointerOverClock(true)}
+        onMouseEnter={() => {
+          isPointerOverClockRef.current = true;
+          handleHoverRestart();
+        }}
+        onMouseLeave={() => {
+          isPointerOverClockRef.current = false;
+        }}
         onClick={handleClockToggle}
       >
         <svg
