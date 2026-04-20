@@ -9,15 +9,16 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 340,
-    height: 340,
-    minWidth: 340,
-    minHeight: 340,
-    maxWidth: 340,
-    maxHeight: 340,
+    width: 260,
+    height: 260,
+    minWidth: 260,
+    minHeight: 260,
+    maxWidth: 260,
+    maxHeight: 260,
     resizable: false,
     maximizable: false,
     fullscreenable: false,
+    movable: true,
     alwaysOnTop: true,
     frame: false,
     transparent: true,
