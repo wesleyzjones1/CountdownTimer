@@ -37,7 +37,7 @@ body {
 .app {
   width: 100%;
   height: 100%;
-  padding: 6px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,7 +50,7 @@ body {
   aspect-ratio: 1 / 1;
   -webkit-app-region: drag;
   border: 1px solid var(--border-color);
-  border-radius: 20px;
+  border-radius: 18px;
   background:
     linear-gradient(180deg, rgba(42, 47, 61, 0.92), rgba(20, 24, 32, 0.97)),
     radial-gradient(circle at center, rgba(40, 200, 64, 0.06), transparent 48%);
@@ -62,7 +62,7 @@ body {
 
 .widget-header {
   position: absolute;
-  inset: 7px 8px auto 8px;
+  inset: 6px 6px auto 6px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -70,7 +70,7 @@ body {
 }
 
 .widget-spacer {
-  width: 44px;
+  width: 40px;
   height: 1px;
 }
 
@@ -109,5 +109,5 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem;
+  padding: 0.2rem;
 }
