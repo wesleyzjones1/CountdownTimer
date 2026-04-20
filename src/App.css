@@ -38,30 +38,77 @@ body {
   width: 100%;
   height: 100%;
   padding: 8px;
-  -webkit-app-region: drag;
-}
-
-.widget-shell {
-  width: 100%;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.widget-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
   border: 1px solid var(--border-color);
   border-radius: 22px;
   background:
-    linear-gradient(180deg, rgba(38, 44, 58, 0.8), rgba(17, 20, 27, 0.94)),
-    radial-gradient(circle at center, rgba(40, 200, 64, 0.08), transparent 48%);
+    linear-gradient(180deg, rgba(42, 47, 61, 0.92), rgba(20, 24, 32, 0.97)),
+    radial-gradient(circle at center, rgba(40, 200, 64, 0.06), transparent 48%);
   box-shadow:
     0 24px 50px rgba(0, 0, 0, 0.38),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(18px);
 }
 
+.widget-header {
+  position: absolute;
+  inset: 8px 10px auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  -webkit-app-region: drag;
+  z-index: 1;
+}
+
+.widget-spacer {
+  width: 52px;
+  height: 1px;
+}
+
+.widget-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  -webkit-app-region: no-drag;
+}
+
+.window-button {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.window-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.window-button.close:hover {
+  background: rgba(255, 64, 85, 0.28);
+}
+
 .app-main {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem;
+  padding: 0.45rem;
   -webkit-app-region: no-drag;
 }

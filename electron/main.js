@@ -9,10 +9,12 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 320,
-    height: 320,
-    minWidth: 320,
-    minHeight: 320,
+    width: 340,
+    height: 340,
+    minWidth: 340,
+    minHeight: 340,
+    maxWidth: 340,
+    maxHeight: 340,
     resizable: false,
     maximizable: false,
     fullscreenable: false,
@@ -29,6 +31,7 @@ function createWindow() {
     },
   });
 
+  mainWindow.setAspectRatio(1);
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
   mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
