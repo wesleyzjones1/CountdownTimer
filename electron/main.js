@@ -13,6 +13,7 @@ const DEFAULT_SETTINGS = {
   showTimeWhileRunning: true,
   refreshCooldownEnabled: true,
   hueEnabled: true,
+  mouseRefreshEnabled: false,
 };
 
 function getBoundsPath() {
@@ -51,6 +52,7 @@ function mergeSettings(settings) {
     showTimeWhileRunning,
     refreshCooldownEnabled: settings?.refreshCooldownEnabled !== false,
     hueEnabled: settings?.hueEnabled !== false,
+    mouseRefreshEnabled: settings?.mouseRefreshEnabled !== false,
   };
 }
 
@@ -101,6 +103,7 @@ function showSettingsMenu() {
     createSettingsToggle('Enable Hue', 'hueEnabled', settings),
     { type: 'separator' },
     createSettingsToggle('5s Refresh Cooldown', 'refreshCooldownEnabled', settings),
+    createSettingsToggle('Refresh on Mouse Hover', 'mouseRefreshEnabled', settings),
   ]);
   menu.popup({ window: mainWindow });
 }

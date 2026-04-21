@@ -27,7 +27,7 @@ function formatTime(seconds) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export default function CountdownTimer({ onStats, showTimeWhileRunning = true, refreshCooldown = 5, hueEnabled = true }) {
+export default function CountdownTimer({ onStats, showTimeWhileRunning = true, refreshCooldown = 5, hueEnabled = true, mouseRefreshEnabled = true }) {
   const [minutesInput, setMinutesInput] = useState('5');
   const [secondsInput, setSecondsInput] = useState('00');
   const timerLoadedRef = useRef(false);
@@ -110,6 +110,7 @@ export default function CountdownTimer({ onStats, showTimeWhileRunning = true, r
   }, [clearTimer]);
 
   const handleHoverRestart = useCallback(() => {
+    if (!mouseRefreshEnabled) return;
     const restartSeconds = totalSeconds ?? getConfiguredSeconds();
     if (!restartSeconds) return;
 
@@ -125,7 +126,7 @@ export default function CountdownTimer({ onStats, showTimeWhileRunning = true, r
       refreshCooldownUntilRef.current = 0;
       startCountdown(restartSeconds);
     }
-  }, [phase, startCountdown, totalSeconds, getConfiguredSeconds, refreshCooldown]);
+  }, [phase, startCountdown, totalSeconds, getConfiguredSeconds, refreshCooldown, mouseRefreshEnabled]);
 
   const handleClockToggle = useCallback(() => {
     if (phase === 'setup') {
@@ -162,7 +163,7 @@ export default function CountdownTimer({ onStats, showTimeWhileRunning = true, r
       if (msLeft <= 0) {
         clearTimer();
 
-        if (isPointerOverClockRef.current && totalSeconds) {
+          if (mouseRefreshEnabled && isPointerOverClockRef.current && totalSeconds) {
           setTimeoutCount(c => c + 1);
           refreshCooldownUntilRef.current = currentNow + (refreshCooldown * 1000);
           startCountdown(totalSeconds);
@@ -182,7 +183,7 @@ export default function CountdownTimer({ onStats, showTimeWhileRunning = true, r
 
     animationFrameRef.current = requestAnimationFrame(tick);
     return clearTimer;
-  }, [phase, clearTimer, startCountdown, totalSeconds, startMs, refreshCooldown]);
+  }, [phase, clearTimer, startCountdown, totalSeconds, startMs, refreshCooldown, mouseRefreshEnabled]);
 
   // Load saved timer config on mount
   useEffect(() => {

@@ -72,6 +72,7 @@ export default function App() {
   const [showTimeWhileRunning, setShowTimeWhileRunning] = useState(true);
   const [refreshCooldownEnabled, setRefreshCooldownEnabled] = useState(true);
   const [hueEnabled, setHueEnabled] = useState(true);
+  const [mouseRefreshEnabled, setMouseRefreshEnabled] = useState(true);
   const loadedRef = useRef(false);
   const resizeSessionRef = useRef(null);
   const onResizeMoveRef = useRef(null);
@@ -93,6 +94,9 @@ export default function App() {
     }
     if (typeof settings.hueEnabled === 'boolean') {
       setHueEnabled(settings.hueEnabled);
+    }
+    if (typeof settings.mouseRefreshEnabled === 'boolean') {
+      setMouseRefreshEnabled(settings.mouseRefreshEnabled);
     }
   }, []);
 
@@ -295,6 +299,7 @@ export default function App() {
             showTimeWhileRunning={showTimeWhileRunning}
             refreshCooldown={refreshCooldownEnabled ? 5 : 0}
             hueEnabled={hueEnabled}
+            mouseRefreshEnabled={mouseRefreshEnabled}
           />
         </main>
         <div className="resize-zone n" onMouseDown={(e) => beginResize(e, 'n')} />
