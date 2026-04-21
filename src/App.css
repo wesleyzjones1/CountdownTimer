@@ -46,46 +46,47 @@ body {
 
 .widget-shell {
   position: relative;
-  width: 100%;
-  height: 100%;
-  aspect-ratio: 1 / 1;
-  -webkit-app-region: drag;
+  width: min(100%, calc(100% - 30px));
+  height: min(100%, calc(100% - 30px));
+  min-width: 0;
+  min-height: 0;
+  margin: 15px;
   border: 1px solid var(--border-color);
   border-radius: 18px;
   overflow: hidden;
-  clip-path: inset(0 round 18px);
   background:
     linear-gradient(180deg, rgba(42, 47, 61, 0.92), rgba(20, 24, 32, 0.97)),
     radial-gradient(circle at center, rgba(40, 200, 64, 0.06), transparent 48%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  cursor: default;
 }
 
 .widget-header {
   position: absolute;
-  inset: 6px 6px auto 6px;
+  inset: 2px 6px auto 6px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
   z-index: 1;
-}
-
-.widget-spacer {
-  width: 40px;
-  height: 1px;
 }
 
 .widget-stats {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.7rem;
-  -webkit-app-region: no-drag;
+  margin-left: 10px;
+}
+
+.widget-stats-hidden {
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
 .widget-stats-label {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.6rem;
+  font-size: clamp(0.45rem, 3.5vw, 0.85rem);
   color: var(--text-muted);
   letter-spacing: 0.02em;
   white-space: nowrap;
@@ -112,7 +113,7 @@ body {
   border: none;
   border-bottom: 1px solid var(--text-muted);
   color: var(--text-secondary);
-  font-size: 0.6rem;
+  font-size: clamp(0.45rem, 3.5vw, 0.85rem);
   font-family: 'Outfit', sans-serif;
   font-variant-numeric: tabular-nums;
   text-align: left;
@@ -125,7 +126,27 @@ body {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  -webkit-app-region: no-drag;
+  opacity: 0;
+  transform: translateY(-2px);
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.widget-actions-zone {
+  margin-left: auto;
+  width: auto;
+  height: 28px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.widget-actions-zone:hover .widget-actions,
+.widget-actions-zone:focus-within .widget-actions,
+.widget-shell:focus-within .widget-actions {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .window-button {
@@ -156,5 +177,77 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.2rem;
+  padding: 10px 10px;
+}
+
+.resize-zone {
+  position: absolute;
+  background: transparent;
+  z-index: 5;
+}
+
+.resize-zone.n,
+.resize-zone.s {
+  left: 18px;
+  right: 18px;
+  height: 12px;
+}
+
+.resize-zone.n {
+  top: 0;
+  cursor: ns-resize;
+}
+
+.resize-zone.s {
+  bottom: 0;
+  cursor: ns-resize;
+}
+
+.resize-zone.e,
+.resize-zone.w {
+  top: 18px;
+  bottom: 18px;
+  width: 12px;
+}
+
+.resize-zone.e {
+  right: 0;
+  cursor: ew-resize;
+}
+
+.resize-zone.w {
+  left: 0;
+  cursor: ew-resize;
+}
+
+.resize-zone.nw,
+.resize-zone.ne,
+.resize-zone.sw,
+.resize-zone.se {
+  width: 18px;
+  height: 18px;
+}
+
+.resize-zone.nw {
+  left: 0;
+  top: 0;
+  cursor: nwse-resize;
+}
+
+.resize-zone.ne {
+  right: 0;
+  top: 0;
+  cursor: nesw-resize;
+}
+
+.resize-zone.sw {
+  left: 0;
+  bottom: 0;
+  cursor: nesw-resize;
+}
+
+.resize-zone.se {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
 }
