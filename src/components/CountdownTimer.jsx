@@ -15,29 +15,40 @@ function lerpColor(progress) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
+function rgbToRgba(rgb, alpha) {
+  const m = rgb.match(/rgb\(\s*(\d+),\s*(\d+),\s*(\d+)\s*\)/);
+  if (!m) return rgb;
+  return `rgba(${m[1]}, ${m[2]}, ${m[3]}, ${alpha})`;
+}
+
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export default function CountdownTimer({ onStats }) {
+export default function CountdownTimer({ onStats, showTimeWhileRunning = true, refreshCooldown = 5, hueEnabled = true }) {
   const [minutesInput, setMinutesInput] = useState('5');
   const [secondsInput, setSecondsInput] = useState('00');
   const timerLoadedRef = useRef(false);
   const [totalSeconds, setTotalSeconds] = useState(null);
   const [remaining, setRemaining] = useState(null);
+  const [nowMs, setNowMs] = useState(null);
+  const [startMs, setStartMs] = useState(0);
   const [phase, setPhase] = useState('setup'); // setup | running | finished
   const [refreshCount, setRefreshCount] = useState(0);
   const [timeoutCount, setTimeoutCount] = useState(0);
-  const intervalRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const endTimeRef = useRef(0);
+  const runTokenRef = useRef(0);
   const isPointerOverClockRef = useRef(false);
   const prevStatsRef = useRef({ refreshes: 0, timeouts: 0 });
+  const refreshCooldownUntilRef = useRef(0);
 
   const clearTimer = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
   }, []);
 
@@ -53,32 +64,47 @@ export default function CountdownTimer({ onStats }) {
   const startCountdown = useCallback((overrideSeconds) => {
     const secs = overrideSeconds ?? getConfiguredSeconds();
     if (!secs || secs <= 0 || secs > 5999) return;
-    const wasRunning = phase === 'running';
-    if (!wasRunning) {
-      clearTimer();
-    }
+    const startNow = Date.now();
+    runTokenRef.current += 1;
+    clearTimer();
+    endTimeRef.current = startNow + (secs * 1000);
+    refreshCooldownUntilRef.current = startNow + (refreshCooldown * 1000);
+    setStartMs(startNow);
     setTotalSeconds(secs);
     setRemaining(secs);
-    if (!wasRunning) {
-      setPhase('running');
-    }
-  }, [getConfiguredSeconds, clearTimer, phase]);
+    setNowMs(startNow);
+    setPhase('running');
+  }, [getConfiguredSeconds, clearTimer, refreshCooldown]);
 
   const stopAndReset = useCallback(() => {
+    runTokenRef.current += 1;
     clearTimer();
+    endTimeRef.current = 0;
+    refreshCooldownUntilRef.current = 0;
     setTotalSeconds(null);
     setRemaining(null);
+    setNowMs(null);
+    setStartMs(0);
     setPhase('setup');
   }, [clearTimer]);
 
   const handleHoverRestart = useCallback(() => {
+    const restartSeconds = totalSeconds ?? getConfiguredSeconds();
+    if (!restartSeconds) return;
+
     if (phase === 'running') {
+      const now = Date.now();
+      if (now < refreshCooldownUntilRef.current) {
+        return;
+      }
+      refreshCooldownUntilRef.current = now + (refreshCooldown * 1000);
       setRefreshCount(c => c + 1);
-      startCountdown(totalSeconds ?? undefined);
+      startCountdown(restartSeconds);
     } else if (phase === 'finished') {
-      startCountdown(totalSeconds ?? undefined);
+      refreshCooldownUntilRef.current = 0;
+      startCountdown(restartSeconds);
     }
-  }, [phase, startCountdown, totalSeconds]);
+  }, [phase, startCountdown, totalSeconds, getConfiguredSeconds, refreshCooldown]);
 
   const handleClockToggle = useCallback(() => {
     if (phase === 'setup') {
@@ -94,26 +120,48 @@ export default function CountdownTimer({ onStats }) {
     startCountdown(totalSeconds ?? undefined);
   }, [phase, startCountdown, stopAndReset, totalSeconds]);
 
-  // Countdown tick
+  // Countdown animation + timing
   useEffect(() => {
-    if (phase !== 'running') return;
-    intervalRef.current = setInterval(() => {
-      setRemaining(prev => {
-        if (prev <= 1) {
-          setTimeoutCount(c => c + 1);
-          if (isPointerOverClockRef.current && totalSeconds) {
-            return totalSeconds;
-          }
+    if (phase !== 'running' || !totalSeconds || !endTimeRef.current || !startMs) return;
 
-          clearTimer();
-          setPhase('finished');
-          return 0;
+    const runToken = runTokenRef.current;
+
+    const tick = () => {
+      if (runToken !== runTokenRef.current) {
+        return;
+      }
+
+      const currentNow = Date.now();
+      const msLeft = Math.max(0, endTimeRef.current - currentNow);
+      const secondsLeft = Math.ceil(msLeft / 1000);
+
+      setNowMs(currentNow);
+      setRemaining(prev => (prev === secondsLeft ? prev : secondsLeft));
+
+      if (msLeft <= 0) {
+        clearTimer();
+
+        if (isPointerOverClockRef.current && totalSeconds) {
+          setTimeoutCount(c => c + 1);
+          refreshCooldownUntilRef.current = currentNow + (refreshCooldown * 1000);
+          startCountdown(totalSeconds);
+          return;
         }
-        return prev - 1;
-      });
-    }, 1000);
+
+        setTimeoutCount(c => c + 1);
+        refreshCooldownUntilRef.current = 0;
+        setRemaining(0);
+        setNowMs(endTimeRef.current);
+        setPhase('finished');
+        return;
+      }
+
+      animationFrameRef.current = requestAnimationFrame(tick);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(tick);
     return clearTimer;
-  }, [phase, clearTimer, totalSeconds]);
+  }, [phase, clearTimer, startCountdown, totalSeconds, startMs, refreshCooldown]);
 
   // Load saved timer config on mount
   useEffect(() => {
@@ -133,6 +181,30 @@ export default function CountdownTimer({ onStats }) {
     window.widgetWindow?.saveTimer?.({ minutes: minutesInput, seconds: secondsInput });
   }, [minutesInput, secondsInput, phase]);
 
+  useEffect(() => {
+    const clearPointerState = () => {
+      isPointerOverClockRef.current = false;
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        clearPointerState();
+      }
+    };
+
+    window.addEventListener('blur', clearPointerState);
+    window.addEventListener('contextmenu', clearPointerState);
+    window.addEventListener('mouseleave', clearPointerState);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('blur', clearPointerState);
+      window.removeEventListener('contextmenu', clearPointerState);
+      window.removeEventListener('mouseleave', clearPointerState);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Report stats to parent as deltas
   useEffect(() => {
     const prev = prevStatsRef.current;
@@ -145,11 +217,21 @@ export default function CountdownTimer({ onStats }) {
   }, [refreshCount, timeoutCount, onStats]);
 
   // Derived values
-  const progress = totalSeconds ? 1 - remaining / totalSeconds : 0;
-  const strokeColor = totalSeconds ? lerpColor(progress) : lerpColor(0);
+  const progress = totalSeconds
+    ? phase === 'running' && nowMs !== null && startMs
+      ? Math.min(1, Math.max(0, (nowMs - startMs) / (totalSeconds * 1000)))
+      : phase === 'finished'
+        ? 1
+        : 0
+    : 0;
+  const hueColor = totalSeconds ? lerpColor(progress) : lerpColor(0);
+  const strokeColor = hueColor;
+  const glowColorStrong = hueEnabled ? rgbToRgba(hueColor, 0.4) : 'transparent';
+  const glowColorSoft = hueEnabled ? rgbToRgba(hueColor, 0.20) : 'transparent';
   const fillOffset = CIRCUMFERENCE * (1 - progress);
   const configuredSeconds = getConfiguredSeconds();
   const displayTime = remaining !== null ? formatTime(remaining) : formatTime(configuredSeconds);
+  const shouldHideDisplayedTime = !showTimeWhileRunning && phase !== 'setup';
 
   const handleMinutesChange = (e) => {
     const val = e.target.value.replace(/\D/g, '').slice(0, 2);
@@ -220,23 +302,23 @@ export default function CountdownTimer({ onStats }) {
             strokeDashoffset={fillOffset}
             className="progress-ring"
             style={{
-              filter: `drop-shadow(0 0 8px ${strokeColor}40)`,
+              filter: hueEnabled ? `drop-shadow(0 0 12px ${rgbToRgba(hueColor, 0.6)})` : 'none',
             }}
           />
           {/* Glow overlay */}
-          {phase === 'running' && (
+          {phase !== 'setup' && hueEnabled && (
             <circle
               cx={CENTER}
               cy={CENTER}
               r={RADIUS}
               fill="none"
               stroke={strokeColor}
-              strokeWidth={STROKE + 6}
+              strokeWidth={STROKE + 12}
               strokeLinecap="round"
               strokeDasharray={CIRCUMFERENCE}
               strokeDashoffset={fillOffset}
               className="progress-glow"
-              style={{ opacity: 0.15 }}
+              style={{ opacity: 0.28 }}
             />
           )}
         </svg>
@@ -255,7 +337,7 @@ export default function CountdownTimer({ onStats }) {
                 onChange={handleMinutesChange}
                 onBlur={handleMinutesBlur}
                 onKeyDown={handleKeyDown}
-                className="time-edit-input"
+                className={`time-edit-input minutes ${(minutesInput || '').length <= 1 ? 'single-digit' : 'double-digit'}`}
                 aria-label="minutes"
                 maxLength={2}
               />
@@ -267,15 +349,18 @@ export default function CountdownTimer({ onStats }) {
                 onChange={handleSecondsChange}
                 onBlur={handleSecondsBlur}
                 onKeyDown={handleKeyDown}
-                className="time-edit-input"
+                className="time-edit-input seconds"
                 aria-label="seconds"
                 maxLength={2}
               />
             </div>
           ) : (
             <span
-              className="time-display"
-              style={{ color: strokeColor }}
+              className={`time-display ${shouldHideDisplayedTime ? 'hidden' : ''}`}
+              style={{
+                color: strokeColor,
+                textShadow: hueEnabled ? `0 0 12px ${glowColorStrong}, 0 0 24px ${glowColorSoft}` : 'none',
+              }}
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
             >
