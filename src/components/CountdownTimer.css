@@ -39,6 +39,19 @@
   stroke-linejoin: round;
 }
 
+.refresh-fade-ring {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 1;
+  animation: refresh-ring-fade 260ms ease-out forwards;
+}
+
+@keyframes refresh-ring-fade {
+  to {
+    opacity: 0;
+  }
+}
+
 .progress-glow {
   stroke-linecap: round;
   stroke-linejoin: round;

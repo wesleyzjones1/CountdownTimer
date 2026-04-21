@@ -38,7 +38,9 @@ export default function CountdownTimer({ onStats, showTimeWhileRunning = true, r
   const [phase, setPhase] = useState('setup'); // setup | running | finished
   const [refreshCount, setRefreshCount] = useState(0);
   const [timeoutCount, setTimeoutCount] = useState(0);
+  const [fadingArc, setFadingArc] = useState(null);
   const animationFrameRef = useRef(null);
+  const fadeTimeoutRef = useRef(null);
   const endTimeRef = useRef(0);
   const runTokenRef = useRef(0);
   const isPointerOverClockRef = useRef(false);
@@ -65,6 +67,25 @@ export default function CountdownTimer({ onStats, showTimeWhileRunning = true, r
     const secs = overrideSeconds ?? getConfiguredSeconds();
     if (!secs || secs <= 0 || secs > 5999) return;
     const startNow = Date.now();
+
+    if (phase === 'running' && totalSeconds && endTimeRef.current) {
+      const msLeft = Math.max(0, endTimeRef.current - startNow);
+      const currentProgress = Math.min(1, Math.max(0, 1 - (msLeft / (totalSeconds * 1000))));
+      setFadingArc({
+        key: startNow,
+        color: lerpColor(currentProgress),
+        dashOffset: CIRCUMFERENCE * (1 - currentProgress),
+      });
+
+      if (fadeTimeoutRef.current) {
+        clearTimeout(fadeTimeoutRef.current);
+      }
+      fadeTimeoutRef.current = setTimeout(() => {
+        setFadingArc(null);
+        fadeTimeoutRef.current = null;
+      }, 260);
+    }
+
     runTokenRef.current += 1;
     clearTimer();
     endTimeRef.current = startNow + (secs * 1000);
@@ -74,7 +95,7 @@ export default function CountdownTimer({ onStats, showTimeWhileRunning = true, r
     setRemaining(secs);
     setNowMs(startNow);
     setPhase('running');
-  }, [getConfiguredSeconds, clearTimer, refreshCooldown]);
+  }, [getConfiguredSeconds, clearTimer, refreshCooldown, phase, totalSeconds]);
 
   const stopAndReset = useCallback(() => {
     runTokenRef.current += 1;
@@ -205,6 +226,13 @@ export default function CountdownTimer({ onStats, showTimeWhileRunning = true, r
     };
   }, []);
 
+  useEffect(() => () => {
+    if (fadeTimeoutRef.current) {
+      clearTimeout(fadeTimeoutRef.current);
+      fadeTimeoutRef.current = null;
+    }
+  }, []);
+
   // Report stats to parent as deltas
   useEffect(() => {
     const prev = prevStatsRef.current;
@@ -305,6 +333,21 @@ export default function CountdownTimer({ onStats, showTimeWhileRunning = true, r
               filter: hueEnabled ? `drop-shadow(0 0 12px ${rgbToRgba(hueColor, 0.6)})` : 'none',
             }}
           />
+          {fadingArc && (
+            <circle
+              key={fadingArc.key}
+              cx={CENTER}
+              cy={CENTER}
+              r={RADIUS}
+              fill="none"
+              stroke={fadingArc.color}
+              strokeWidth={STROKE}
+              strokeLinecap="round"
+              strokeDasharray={CIRCUMFERENCE}
+              strokeDashoffset={fadingArc.dashOffset}
+              className="refresh-fade-ring"
+            />
+          )}
           {/* Glow overlay */}
           {phase !== 'setup' && hueEnabled && (
             <circle
