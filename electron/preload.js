@@ -17,4 +17,5 @@ contextBridge.exposeInMainWorld('widgetWindow', {
   saveStats: (stats) => ipcRenderer.invoke('stats:save', stats),
   loadTimer: () => ipcRenderer.invoke('timer:load'),
   saveTimer: (config) => ipcRenderer.invoke('timer:save', config),
+  showContextMenu: () => ipcRenderer.invoke('menu:show'),
 });

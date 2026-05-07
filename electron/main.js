@@ -152,6 +152,10 @@ ipcMain.handle('widget:close', () => {
   mainWindow?.close();
 });
 
+ipcMain.handle('menu:show', () => {
+  showSettingsMenu();
+});
+
 ipcMain.handle('widget:get-bounds', () => {
   if (!mainWindow) return null;
   const { x, y, width, height } = mainWindow.getBounds();

@@ -10,6 +10,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
     "widget": "npm run build && electron ./electron/main.js",
     "package:win": "npm run build && electron-builder --win dir"
   },
@@ -22,11 +24,12 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "electron": "^37.2.6",
+    "electron": "^42.0.0",
     "electron-builder": "^26.0.12",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "gh-pages": "^5.0.0",
     "globals": "^17.5.0",
     "vite": "^8.0.9"
   },
